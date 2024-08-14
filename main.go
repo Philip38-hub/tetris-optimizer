@@ -19,29 +19,36 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	var lines []string
 
+	// read file line by line
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
+}
 
-	if len(lines) < 4 {
-		fmt.Printf("Expect atleast one tetromino in %s", os.Args[1])
-		os.Exit(0)
-	}
-	// group lines read into 9 to display each character individually
-	tetramino := make([]string, 5)
+func tetraminos(lines []string) [][]string {
+	// read tetrominos and store in a 2D slice
+	var tetramino []string
 	var tetraminos [][]string
-	for i := 0; i < len(lines); i += 4 {
-		end := i + 4
-		if end > len(lines) {
-			end = len(lines)
+	letter := 'A'
+	for _, line := range lines {
+		t := ""
+		if line != "" {
+			for _, char := range line {
+				if char == '#' {
+					t += string(letter)
+				} else if char == '.' {
+					t += string(char)
+				} else {
+					fmt.Printf("Invalid tetramino character: %c ", char)
+					os.Exit(1)
+				}
+			}
+			tetramino = append(tetramino, t)
+		} else {
+			tetraminos = append(tetraminos, tetramino)
+			tetramino = []string{} // Reset for the next tetromino
+			letter++
 		}
-		tetramino = lines[i:end]
-		tetraminos = append(tetraminos, tetramino[:4])
 	}
-
-	// r := flag.Args()[0]
-	// // Format ("/n") in input string
-	// s := strings.Replace(r, "\\n", "\n", -1)
-	// s = strings.Replace(s, "\\t", "    ", -1)
-	// asciiart.HandleLn(s, result, outputfile)
+	return tetraminos
 }
