@@ -23,6 +23,16 @@ func main() {
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
+	for _, tetramino := range tetraminos(lines) {
+		if err := validator(tetramino); err != nil {
+			fmt.Println(err)
+			os.Exit(0)
+		}
+		// for _, row := range tetramino {
+		// 	fmt.Println(row)
+		// }
+		// fmt.Println()
+	}
 }
 
 func tetraminos(lines []string) [][]string {
@@ -50,5 +60,43 @@ func tetraminos(lines []string) [][]string {
 			letter++
 		}
 	}
+	if len(tetramino) > 0 {
+        tetraminos = append(tetraminos, tetramino)
+    }
 	return tetraminos
+}
+
+func validator (s []string) error {
+	if len(s) != 4 {
+		return fmt.Errorf("tetramino %v does not have 4 columns", s)
+	}
+	countconn := 0
+	countchar := 0
+	for i, row := range s {
+		if len(row) != 4 {
+			return fmt.Errorf("tetramino %v has %v rows", row, len(row))
+		}
+
+		for j, char := range row{
+			if char != '.' {
+				countchar++
+				if i > 0 && s[i-1][j] == byte(char) {
+					countconn++
+				}
+				if i < len(s)-1 && s[i+1][j] == byte(char) {
+					countconn++
+				}
+				if j > 0 && s[i][j-1] == byte(char) {
+					countconn++
+				}
+				if j < len(row)-1 && s[i][j+1] == byte(char) {
+					countconn++
+				}
+			}
+		}
+	}
+	if countconn < 6 || countchar != 4 {
+		return fmt.Errorf("tetramino %v is invalid", s)
+	}
+	return nil
 }
