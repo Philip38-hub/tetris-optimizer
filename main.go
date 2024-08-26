@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"strings"
 )
@@ -24,19 +25,36 @@ func main() {
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
-	for _, tetromino := range tetrominosGenerator(lines) {
-		if err := validator(tetromino); err != nil {
+	// generate tetrominos
+	tetrominos := TetrominosGenerator(lines)
+	// validate that each tetramino has 4 #s, 4 rows, 4 columns and 6 or more connections
+	for _, tetromino := range tetrominos {
+		if err := Validator(tetromino); err != nil {
 			fmt.Println(err)
 			os.Exit(0)
 		}
-		// for _, row := range tetromino {
-		// 	fmt.Println(row)
-		// }
-		// fmt.Println()
 	}
+
+	// trim tetrominos
+	tetrominos = Trimmer(tetrominos)
+
+	// create board and solve for optimization
+	sizeOfBoard := int(math.Ceil(math.Sqrt(float64(len(tetrominos) * 4))))
+	var final [][]string
+	for {
+		board := CreateBoard(sizeOfBoard)
+		final = tetrominos.Solve(board, tetrominos)
+		if final != nil {
+			break
+		}
+		sizeOfBoard++
+	}
+
+	// print board
+	PrintBoard(final)
 }
 
-func tetrominosGenerator(lines []string) [][]string {
+func TetrominosGenerator(lines []string) [][]string {
 	// read tetrominos and store in a 2D slice
 	var tetromino []string
 	var tetrominos [][]string
@@ -62,12 +80,12 @@ func tetrominosGenerator(lines []string) [][]string {
 		}
 	}
 	if len(tetromino) > 0 {
-        tetrominos = append(tetrominos, tetromino)
-    }
+		tetrominos = append(tetrominos, tetromino)
+	}
 	return tetrominos
 }
 
-func validator (s []string) error {
+func Validator(s []string) error {
 	if len(s) != 4 {
 		return fmt.Errorf("tetromino %v does not have 4 columns", s)
 	}
@@ -78,7 +96,7 @@ func validator (s []string) error {
 			return fmt.Errorf("tetromino %v has %v rows", row, len(row))
 		}
 
-		for j, char := range row{
+		for j, char := range row {
 			if char != '.' {
 				countchar++
 				if i > 0 && s[i-1][j] == byte(char) {
@@ -104,7 +122,7 @@ func validator (s []string) error {
 
 func Trimmer(tetrominos [][]string) [][]string {
 	letters := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	//remove strings with no letters i.e rows
+	// remove strings with no letters i.e rows
 	var newTetrominos [][]string
 	for _, tetromino := range tetrominos {
 		newTetromino := []string{}
@@ -114,11 +132,11 @@ func Trimmer(tetrominos [][]string) [][]string {
 					newTetromino = append(newTetromino, str)
 				}
 			}
-			newTetrominos = append(newTetrominos, newTetromino)
 		}
+		newTetrominos = append(newTetrominos, newTetromino)
 	}
 
-	//remove columns without letters in them
+	// remove columns without letters in them
 	var newTetrominos2 [][]string
 	for _, tetromino := range newTetrominos {
 		width := len(tetromino[0])
@@ -150,4 +168,25 @@ func Trimmer(tetrominos [][]string) [][]string {
 		newTetrominos2 = append(newTetrominos2, result)
 	}
 	return newTetrominos2
+}
+
+func CreateBoard(size int) [][]string {
+	board := make([][]string, size)
+	for i := range board {
+		board[i] = make([]string, size)
+		for j := range board[i] {
+			board[i][j] = "."
+		}
+	}
+	return board
+}
+
+func PrintBoard(board [][]string) {
+	for _, row := range board {
+		for _, char := range row {
+			fmt.Printf("%s ", char)
+		}
+		fmt.Println()
+	}
+	fmt.Println()
 }
