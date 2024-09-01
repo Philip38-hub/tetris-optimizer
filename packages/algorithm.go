@@ -1,27 +1,52 @@
 package Tetrominos
 
+import "fmt"
+
+// create a board with dimensions of length == number of tetraminos
+func CreateBoard(size int) [][]string {
+	board := make([][]string, size)
+	for i := range board {
+		board[i] = make([]string, size)
+		for j := range board[i] {
+			board[i][j] = "."
+		}
+	}
+	return board
+}
+
 // Solve attempts to place tetrominosin the smallest square possible using recursive method.
-func Solve(board [][]string, tetrominoes [][]string) [][]string {
-	if Solvetetro(board, tetrominoes, 0) {
+func Solve(board [][]string, tetrominos [][]string) [][]string {
+	if Solvetetro(board, tetrominos, 0) {
 		return board
 	}
 	return nil
 }
 
-func Solvetetro(board [][]string, tetrominoes [][]string, index int) bool {
+// finally print the board
+func PrintBoard(board [][]string) {
+	for _, row := range board {
+		for _, char := range row {
+			fmt.Printf("%s ", char)
+		}
+		fmt.Println()
+	}
+	fmt.Println()
+}
+
+func Solvetetro(board [][]string, tetrominos [][]string, index int) bool {
 	// checks if all tetrominos have been exhausted
-	if index == len(tetrominoes) {
+	if index == len(tetrominos) {
 		return true
 	}
 
-	tetromino := tetrominoes[index]
+	tetromino := tetrominos[index]
 	// Try to place the current tetromino at every possible position
 	for y := range board {
 		for x := range board[y] {
 			if canPlace(board, tetromino, x, y) {
 				placeTetromino(board, tetromino, x, y)
 				// Recursively try to place the next tetromino
-				if Solvetetro(board, tetrominoes, index+1) {
+				if Solvetetro(board, tetrominos, index+1) {
 					return true
 				}
 				// If unsuccessful remove the current tetromino and try the next position
